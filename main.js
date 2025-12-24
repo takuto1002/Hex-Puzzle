@@ -110,11 +110,15 @@ function drawAll(){
 function drawTitleScreen(){
   ctx.font="40px Arial"; ctx.fillStyle="black";
   ctx.fillText("六角形パズルゲーム",100,100);
+ ctx.font="18px Arial";
+  ctx.fillText("同じ色の六角形をクリックして消そう！", 90, 160);
+  ctx.fillText("たくさんつなげるほど高得点！", 120, 185);
   ctx.font="30px Arial";
   ctx.fillText("スタート",200,250);
   ctx.fillText("ハイスコア",200,320);
   ctx.fillText("リセット",200,400);
 }
+
 
 function drawModeSelectScreen(){
   ctx.font="30px Arial"; ctx.fillStyle="black";
@@ -468,3 +472,4 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
