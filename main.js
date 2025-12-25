@@ -10,6 +10,8 @@ let score = 0;
 let moves = 0;
 let gameOver = false;
 let popups = [];
+let userName = localStorage.getItem("userName") || "Hex-user";
+
 
 let currentScreen = "title"; // title / modeSelect / game / gameOver / highScore / gameClear / resetConfirm
 let currentMode = null;
@@ -104,6 +106,7 @@ function drawAll(){
     case "gameClear": drawGameClearScreen(); break;
     case "resetConfirm": drawResetConfirmScreen(); break;
   }
+drawUserName();
 }
 
 // ------------------ 画面 ------------------
@@ -304,6 +307,15 @@ canvas.addEventListener("click", (e) => {
   }
 });
 
+document.getElementById("changeNameBtn").onclick = () => {
+  const newName = prompt("ユーザー名を入力してください", userName);
+  if(newName && newName.trim() !== ""){
+    userName = newName.trim();
+    localStorage.setItem("userName", userName);
+  }
+};
+
+
 // ------------------ ゲーム開始 ------------------
 function startGame(modeKey){
   currentMode=gameModes[modeKey];
@@ -453,6 +465,19 @@ function drawScore(){
   ctx.fillText("High Score: "+getHighScore(currentMode),canvas.width-200,30);
 }
 
+// ------------------ ユーザー名表示 ------------------
+function drawUserName(){
+  const text = "Gameuser: " + userName;
+
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "black";
+  ctx.fillText(
+    text,
+    canvas.width - 20 - ctx.measureText(text).width,
+    canvas.height - 20
+  );
+}
+
 // ------------------ アニメーション ------------------
 function animateDrop(){
   let moving=false;
@@ -472,4 +497,3 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
-
