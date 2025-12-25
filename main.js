@@ -307,13 +307,17 @@ canvas.addEventListener("click", (e) => {
   }
 });
 
-document.getElementById("changeNameBtn").onclick = () => {
-  const newName = prompt("ユーザー名を入力してください", userName);
-  if(newName && newName.trim() !== ""){
-    userName = newName.trim();
-    localStorage.setItem("userName", userName);
-  }
-};
+const changeBtn = document.getElementById("changeNameBtn");
+if (changeBtn) {
+  changeBtn.onclick = () => {
+    const newName = prompt("ユーザー名を入力してください", userName);
+    if (newName && newName.trim() !== "") {
+      userName = newName.trim();
+      localStorage.setItem("userName", userName);
+      drawAll(); // 即時反映
+    }
+  };
+}
 
 
 // ------------------ ゲーム開始 ------------------
@@ -497,4 +501,5 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
 
