@@ -4,11 +4,30 @@
 <meta charset="UTF-8">
 <title>六角形パズルゲーム</title>
 <style>
-  canvas { border:1px solid black; display:block; margin:0 auto; }
+  #gameWrapper {
+    width: 600px;
+    margin: 0 auto;   /* 画面中央寄せ */
+    text-align: center;
+  }
+
+  canvas {
+    border: 1px solid black;
+    display: block;
+    margin: 0 auto;
+  }
+
+  #changeNameBtn {
+    margin-top: 10px; /* キャンバスの真下 */
+  }
 </style>
 </head>
 <body>
-<canvas id="game" width="600" height="600"></canvas>
+
+<div id="gameWrapper">
+  <canvas id="game" width="600" height="600"></canvas>
+  <button id="changeNameBtn">名前変更</button>
+</div>
+
 <script src="main.js"></script>
 </body>
 </html>
