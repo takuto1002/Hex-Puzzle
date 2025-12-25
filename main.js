@@ -319,7 +319,6 @@ if (changeBtn) {
   };
 }
 
-
 // ------------------ ゲーム開始 ------------------
 function startGame(modeKey){
   currentMode=gameModes[modeKey];
@@ -501,5 +500,4 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
-
 
