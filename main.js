@@ -115,7 +115,40 @@ drawUserName();
 }
 
 // ------------------ 画面描写 ------------------
+function drawAll() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  switch(currentScreen){
+    case "title":
+      drawTitleScreen();
+      break;
+    case "modeSelect":
+      drawModeSelectScreen();
+      break;
+    case "game":
+      drawGameScreen();
+      break;
+    case "gameOver":
+      drawGameOverScreen();
+      break;
+    case "gameClear":
+      drawGameClearScreen();
+      break;
+    case "resetConfirm":
+      drawResetConfirmScreen();
+      break;
+    case "highScore":
+      drawHighScoreScreen();
+      break;
+    default:
+      // 万一のデフォルトはタイトル画面
+      drawTitleScreen();
+      break;
+  }
+
+  // 画面共通要素
+  drawUserName();
+}
 // タイトル画面
 function drawTitleScreen(){
   ctx.font="40px Arial"; ctx.fillStyle="black";
@@ -551,5 +584,6 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
 
 
