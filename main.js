@@ -16,9 +16,6 @@ let userName = localStorage.getItem("userName") || "Hex-user";
 let currentScreen = "title"; // title / modeSelect / game / gameOver / highScore / gameClear / resetConfirm
 let currentMode = null;
 
-// ------------------ 効果音 ------------------
-const popSound = new Audio('pop.mp3');
-
 // ------------------ ゲームモード ------------------
 const gameModes = {
   easy:   { name: "Easy", moves: 15, colors: ["red","blue","yellow"], highScoreKey: "easyHighScore" },
@@ -567,3 +564,4 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
