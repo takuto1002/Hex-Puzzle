@@ -56,6 +56,14 @@ function saveChallengeHighScore() {
   }
 }
 
+// ------------------ ハイスコア画面ボタン定義 ------------------
+const highscoreButtons = [
+  {mode: "easy", x: 400, y: 180, width: 160, height: 40, label: "ランキングに登録"},
+  {mode: "hard", x: 400, y: 230, width: 160, height: 40, label: "ランキングに登録"},
+  {mode: "challenge", x: 400, y: 280, width: 160, height: 40, label: "ランキングに登録"},
+  {mode: "extreme", x: 400, y: 330, width: 160, height: 40, label: "ランキングに登録"},
+];
+
 // ------------------ 六角形描画 ------------------
 function drawHex(x, y, size, color, exists){
   if(!exists) return;
@@ -136,58 +144,49 @@ function drawModeSelectScreen(){
   ctx.fillText("戻る",150,400);
 }
 
-function drawHighScoreScreen(){
-  ctx.fillStyle="black";
+function drawHighScoreScreen() {
+  ctx.clearRect(0,0,canvas.width,canvas.height); // 前の画面をクリア
+  ctx.font = "30px Arial"; ctx.fillStyle = "black";
+  ctx.fillText("モード別ハイスコア", 100, 100);
 
-  // タイトル
-  ctx.font="30px Arial";
-  ctx.fillText("モード別ハイスコア",100,100);
-
-  // スコア
-  ctx.font="20px Arial"; 
-  ctx.fillText("Easy: "+(localStorage.getItem("easyHighScore")||0),150,200);
-  ctx.fillText("Hard: "+(localStorage.getItem("hardHighScore")||0),150,250);
-  ctx.fillText("5000点チャレンジ: "+(localStorage.getItem("challengeHighScore")||0),150,300);
-
+  ctx.font = "24px Arial";
+  ctx.fillText("Easy: " + (localStorage.getItem("easyHighScore") || 0), 150, 200);
+  ctx.fillText("Hard: " + (localStorage.getItem("hardHighScore") || 0), 150, 250);
+  ctx.fillText("5000点チャレンジ: " + (localStorage.getItem("challengeHighScore") || 0), 150, 300);
   let extremeText = gameModes.extreme.unlocked ? "Extreme: " + (localStorage.getItem("extremeHighScore") || 0) 
-                                                : "???: 0";
+                                               : "???: 0";
   ctx.fillText(extremeText, 150, 350);
 
-  // ランキング登録ボタン
-  ctx.font="16px Arial";
-  ctx.fillStyle="lightblue";
-  ctx.fillRect(400, 200, 100, 30); // Easy
-  ctx.strokeRect(400, 200, 100, 30);
-  ctx.fillStyle="black";
-  ctx.fillText("登録", 410, 222);
+// 登録ボタン描写
+highscoreButtons.forEach(b => {
+  ctx.fillStyle = "#ffcc00";
+  ctx.fillRect(b.x, b.y, b.width, b.height);
 
-  ctx.fillStyle="lightblue";
-  ctx.fillRect(400, 250, 100, 30); // Hard
-  ctx.strokeRect(400, 250, 100, 30);
-  ctx.fillStyle="black";
-  ctx.fillText("登録", 410, 272);
+  ctx.fillStyle = "#000";
+  ctx.font = "16px Arial";
+  ctx.fillText(b.label, b.x + 10, b.y + 28);
+});
 
-  ctx.fillStyle="lightblue";
-  ctx.fillRect(400, 300, 100, 30); // チャレンジ
-  ctx.strokeRect(400, 300, 100, 30);
-  ctx.fillStyle="black";
-  ctx.fillText("登録", 410, 322);
+  // 戻るボタン描写
+  ctx.fillStyle = "#aaa";
+  ctx.fillRect(150, 400, 120, 40);
+  ctx.fillStyle = "#000";
+  ctx.fillText("戻る", 160, 430);
+}
 
-  if(gameModes.extreme.unlocked){
-    ctx.fillStyle="lightblue";
-    ctx.fillRect(400, 350, 100, 30); // Extreme
-    ctx.strokeRect(400, 350, 100, 30);
-    ctx.fillStyle="black";
-    ctx.fillText("登録", 410, 372);
+function drawGameScreen(){
+  for(let col=0;col<COLS;col++){
+    for(let row=0;row<ROWS;row++){
+      const hex = hexGrid[col][row];
+      drawHex(hex.x,hex.y,SIZE,hex.color,hex.exists);
+    }
   }
-
-  // 戻るボタン（タイトルへ）
-  ctx.font="20px Arial";
-  ctx.fillStyle="lightgreen";
-  ctx.fillRect(150, 400, 100, 30);
-  ctx.strokeRect(150, 400, 100, 30);
-  ctx.fillStyle="black";
-  ctx.fillText("戻る", 170, 422);
+  drawScore();
+  drawPopups();
+// ハイスコアの下にタイトルに戻るボタン
+  ctx.fillStyle = "black";
+  ctx.font = "20px Arial";
+  ctx.fillText("タイトルに戻る", canvas.width - 160, 60);
 }
 
 function drawGameOverScreen(){
@@ -281,22 +280,26 @@ canvas.addEventListener("click", (e) => {
       drawAll();
     }
   }
-else if(currentScreen === "highScore"){ 
-  // 登録ボタン判定
-  if(mx >= 400 && mx <= 500){
-    if(my >= 200 && my <= 230) submitRanking("easy");
-    else if(my >= 250 && my <= 280) submitRanking("hard");
-    else if(my >= 300 && my <= 330) submitRanking("challenge");
-    else if(my >= 350 && my <= 380 && gameModes.extreme.unlocked) submitRanking("extreme");
-  }
-  
-  // 戻るボタン判定
-  if(mx >= 150 && mx <= 250 && my >= 400 && my <= 430){
-    currentScreen = "title";
+else if(currentScreen === "highScore") {
+  // ランキング登録ボタン判定
+  highscoreButtons.forEach(b => {
+    if(mx >= b.x && mx <= b.x + b.width &&
+       my >= b.y && my <= b.y + b.height){
+      const mode = gameModes[b.mode];
+      const scoreToSend = getHighScore(mode);
+      sendScoreToGAS(b.mode, userName, scoreToSend); // GAS送信関数
+    }
+  });
+  // 戻るボタンクリック判定
+  if(mx >= 150 && mx <= 270 && my >= 400 && my <= 440){ // ボタンの座標・サイズに合わせる
+    currentScreen = "title";  // タイトル画面に戻る
     drawAll();
+    return; // ここで処理終了
   }
-}
 
+  drawAll();
+  return;
+}
   else if(currentScreen === "modeSelect"){
     if(my >= 180 && my <= 220) startGame("easy");
     else if(my >= 230 && my <= 270) startGame("hard");
@@ -345,42 +348,43 @@ else if(currentScreen === "highScore"){
   }
 });
 
-window.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("changeNameBtn");
-  btn.onclick = () => {
+const changeBtn = document.getElementById("changeNameBtn");
+if (changeBtn) {
+  changeBtn.onclick = () => {
     const newName = prompt("ユーザー名を入力してください", userName);
-    if(newName && newName.trim() !== ""){
+    if (newName && newName.trim() !== "") {
       userName = newName.trim();
       localStorage.setItem("userName", userName);
+      drawAll(); // 即時反映
     }
   };
-});
+}
 
-// ------------------ GAS送信関数 ------------------
-async function submitRanking(modeKey){
-  const keyMap = {
-    easy: "easyHighScore",
-    hard: "hardHighScore",
-    challenge: "challengeHighScore",
-    extreme: "extremeHighScore"
-  };
+// ------------------ GAS関数------------------
+function sendScoreToGAS(mode, userName, score){
+  console.log("送信開始", {mode, userName, score});
 
-  // localStorage からスコアを取得
-  const scoreToSubmit = parseInt(localStorage.getItem(keyMap[modeKey])) || 0;
-  if(scoreToSubmit <= 0) return alert("スコアがありません");
-
-  try {
-    const url = "https://script.google.com/macros/s/AKfycbwFtr-mUnW8SwqKoZYT8QDX0IRzfjKwKos79oHWQLXTqYuQDPvBtz884LkePOfoTPK8/exec";
-    const res = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify({name: userName, score: scoreToSubmit, mode: modeKey}),
-      headers: {"Content-Type":"application/json"}
-    });
-    const data = await res.json();
-    if(data.status === "success") alert(modeKey + " のスコアをランキングに登録しました！");
-  } catch(e) {
-    alert("送信に失敗しました。ネットワークを確認してください。");
-  }
+  fetch("https://script.google.com/macros/s/AKfycbwFtr-mUnW8SwqKoZYT8QDX0IRzfjKwKos79oHWQLXTqYuQDPvBtz884LkePOfoTPK8/exec", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      name: userName,
+      score: score,
+      mode: mode
+    })
+  })
+  .then(res => {
+    console.log("HTTP status", res.status);
+    return res.text();
+  })
+  .then(text => {
+    console.log("レスポンス本文", text);
+    alert("ランキングに登録しました！");
+  })
+  .catch(err => {
+    console.error("fetchエラー", err);
+    alert("通信に失敗しました");
+  });
 }
 // ------------------ ゲーム開始 ------------------
 function startGame(modeKey){
@@ -563,5 +567,3 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
-
-
