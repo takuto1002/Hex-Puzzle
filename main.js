@@ -6,7 +6,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBbeaItW2b_UDIPziGuB7h8_7eQFgLDWwM",
   authDomain: "hex-puzzle-ranking.firebaseapp.com",
   projectId: "hex-puzzle-ranking",
-  storageBucket: "hex-puzzle-ranking.firebasestorage.app",
+  storageBucket: "hex-puzzle-ranking.appspot.com",
   messagingSenderId: "334449658970",
   appId: "1:334449658970:web:a518af884233e3ce1f9c63",
   measurementId: "G-751YSLJ9E7"
@@ -17,9 +17,7 @@ const db = getFirestore(app);
 
 window.sendHighScore = async function(mode, score, userName){
   try {
-    await addDoc(collection(db,"highscores"), {
-      mode, score, userName, date: new Date()
-    });
+    await addDoc(collection(db,"highscores"), { mode, score, userName, date: new Date() });
     alert("ハイスコアを送信しました！");
   } catch(e){
     console.error(e);
@@ -541,3 +539,4 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
