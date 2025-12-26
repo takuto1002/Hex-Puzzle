@@ -137,31 +137,57 @@ function drawModeSelectScreen(){
 }
 
 function drawHighScoreScreen(){
-  ctx.font="30px Arial"; ctx.fillStyle="black";
+  ctx.fillStyle="black";
+
+  // タイトル
+  ctx.font="30px Arial";
   ctx.fillText("モード別ハイスコア",100,100);
-  ctx.font="24px Arial";
+
+  // スコア
+  ctx.font="20px Arial"; 
   ctx.fillText("Easy: "+(localStorage.getItem("easyHighScore")||0),150,200);
   ctx.fillText("Hard: "+(localStorage.getItem("hardHighScore")||0),150,250);
   ctx.fillText("5000点チャレンジ: "+(localStorage.getItem("challengeHighScore")||0),150,300);
- let extremeText = gameModes.extreme.unlocked ? "Extreme: " + (localStorage.getItem("extremeHighScore") || 0) 
-                                              : "???: 0";
-ctx.fillText(extremeText, 150, 350);
-  ctx.fillText("戻る (クリック)",150,400);
-}
 
-function drawGameScreen(){
-  for(let col=0;col<COLS;col++){
-    for(let row=0;row<ROWS;row++){
-      const hex = hexGrid[col][row];
-      drawHex(hex.x,hex.y,SIZE,hex.color,hex.exists);
-    }
+  let extremeText = gameModes.extreme.unlocked ? "Extreme: " + (localStorage.getItem("extremeHighScore") || 0) 
+                                                : "???: 0";
+  ctx.fillText(extremeText, 150, 350);
+
+  // ランキング登録ボタン
+  ctx.font="16px Arial";
+  ctx.fillStyle="lightblue";
+  ctx.fillRect(400, 200, 100, 30); // Easy
+  ctx.strokeRect(400, 200, 100, 30);
+  ctx.fillStyle="black";
+  ctx.fillText("登録", 410, 222);
+
+  ctx.fillStyle="lightblue";
+  ctx.fillRect(400, 250, 100, 30); // Hard
+  ctx.strokeRect(400, 250, 100, 30);
+  ctx.fillStyle="black";
+  ctx.fillText("登録", 410, 272);
+
+  ctx.fillStyle="lightblue";
+  ctx.fillRect(400, 300, 100, 30); // チャレンジ
+  ctx.strokeRect(400, 300, 100, 30);
+  ctx.fillStyle="black";
+  ctx.fillText("登録", 410, 322);
+
+  if(gameModes.extreme.unlocked){
+    ctx.fillStyle="lightblue";
+    ctx.fillRect(400, 350, 100, 30); // Extreme
+    ctx.strokeRect(400, 350, 100, 30);
+    ctx.fillStyle="black";
+    ctx.fillText("登録", 410, 372);
   }
-  drawScore();
-  drawPopups();
-// ハイスコアの下にタイトルに戻るボタン
-  ctx.fillStyle = "black";
-  ctx.font = "20px Arial";
-  ctx.fillText("タイトルに戻る", canvas.width - 160, 60);
+
+  // 戻るボタン（タイトルへ）
+  ctx.font="20px Arial";
+  ctx.fillStyle="lightgreen";
+  ctx.fillRect(150, 400, 100, 30);
+  ctx.strokeRect(150, 400, 100, 30);
+  ctx.fillStyle="black";
+  ctx.fillText("戻る", 170, 422);
 }
 
 function drawGameOverScreen(){
@@ -255,10 +281,21 @@ canvas.addEventListener("click", (e) => {
       drawAll();
     }
   }
-  else if(currentScreen === "highScore"){ 
-    currentScreen = "title"; 
-    drawAll(); 
+ else if(currentScreen === "highScore"){ 
+  // 登録ボタン判定
+  if(mx >= 400 && mx <= 500){
+    if(my >= 200 && my <= 230) submitRanking("Easy");
+    else if(my >= 250 && my <= 280) submitRanking("Hard");
+    else if(my >= 300 && my <= 330) submitRanking("5000点チャレンジ");
+    else if(my >= 350 && my <= 380 && gameModes.extreme.unlocked) submitRanking("Extreme");
   }
+  
+  // 戻るボタン判定
+  if(mx >= 150 && mx <= 250 && my >= 400 && my <= 430){
+    currentScreen = "title";
+    drawAll();
+  }
+}
   else if(currentScreen === "modeSelect"){
     if(my >= 180 && my <= 220) startGame("easy");
     else if(my >= 230 && my <= 270) startGame("hard");
@@ -318,7 +355,27 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 });
 
-// ------------------ ゲーム開始 ------------------
+// ------------------ GAS送信 ------------------
+async function submitRanking(modeName){
+  if(!modeName) return;
+
+  const mode = gameModes[modeName.toLowerCase()] || currentMode;
+  const scoreToSubmit = parseInt(localStorage.getItem(mode.highScoreKey)) || 0;
+  if(scoreToSubmit <= 0) return alert("スコアがありません");
+
+  try {
+    const url = "https://script.google.com/macros/s/AKfycbwFtr-mUnW8SwqKoZYT8QDX0IRzfjKwKos79oHWQLXTqYuQDPvBtz884LkePOfoTPK8/exec";
+    const res = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify({name:userName, score:scoreToSubmit, mode:mode.name}),
+      headers: {"Content-Type":"application/json"}
+    });
+    const data = await res.json();
+    if(data.status === "success") alert(`${mode.name}のスコアをランキングに登録しました！`);
+  } catch(e) {
+    alert("送信に失敗しました。ネットワークを確認してください。");
+  }
+}// ------------------ ゲーム開始 ------------------
 function startGame(modeKey){
   currentMode=gameModes[modeKey];
   score=0;
@@ -499,5 +556,4 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
-
 
