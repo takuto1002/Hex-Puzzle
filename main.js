@@ -1,3 +1,33 @@
+// ------------------ Firebase 初期化 ------------------
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBbeaItW2b_UDIPziGuB7h8_7eQFgLDWwM",
+  authDomain: "hex-puzzle-ranking.firebaseapp.com",
+  projectId: "hex-puzzle-ranking",
+  storageBucket: "hex-puzzle-ranking.firebasestorage.app",
+  messagingSenderId: "334449658970",
+  appId: "1:334449658970:web:a518af884233e3ce1f9c63",
+  measurementId: "G-751YSLJ9E7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.sendHighScore = async function(mode, score, userName){
+  try {
+    await addDoc(collection(db,"highscores"), {
+      mode, score, userName, date: new Date()
+    });
+    alert("ハイスコアを送信しました！");
+  } catch(e){
+    console.error(e);
+    alert("送信失敗");
+  }
+};
+
+// ------------------ Canvas ------------------
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -11,58 +41,48 @@ let moves = 0;
 let gameOver = false;
 let popups = [];
 let userName = localStorage.getItem("userName") || "Hex-user";
-
-
 let currentScreen = "title"; // title / modeSelect / game / gameOver / highScore / gameClear / resetConfirm
 let currentMode = null;
 
 // ------------------ ゲームモード ------------------
 const gameModes = {
-  easy:   { name: "Easy", moves: 15, colors: ["red","blue","yellow"], highScoreKey: "easyHighScore" },
-  hard:   { name: "Hard", moves: 15, colors: ["red","blue","yellow","green"], highScoreKey: "hardHighScore" },
+  easy: { name: "Easy", moves: 15, colors: ["red","blue","yellow"], highScoreKey: "easyHighScore" },
+  hard: { name: "Hard", moves: 15, colors: ["red","blue","yellow","green"], highScoreKey: "hardHighScore" },
   challenge: { name: "5000点チャレンジ", moves: 9999, targetScore: 5000, colors: ["red","blue","yellow","green"], highScoreKey: "challengeHighScore" },
-  extreme:   { name: "Extreme", moves: 15, colors: ["red","blue","yellow","green","purple"], highScoreKey: "extremeHighScore", unlocked: false }
+  extreme: { name: "Extreme", moves: 15, colors: ["red","blue","yellow","green","purple"], highScoreKey: "extremeHighScore", unlocked:false }
 };
 
-// ------------------ Extreme解放状態を永続化 ------------------
-// ブラウザ再起動後も解放状態を保持する
-if(localStorage.getItem("extremeUnlocked") === "true"){
-  gameModes.extreme.unlocked = true;
-}// ------------------ ハイスコア ------------------
-function getHighScore(mode) {
-  if (!mode) return 0;
+// 永続化チェック
+if(localStorage.getItem("extremeUnlocked")==="true") gameModes.extreme.unlocked = true;
+
+// ------------------ ハイスコア取得 ------------------
+function getHighScore(mode){
+  if(!mode) return 0;
   const val = localStorage.getItem(mode.highScoreKey);
-  if(mode.name === "Extreme" && !mode.unlocked) return "???";
+  if(mode.name==="Extreme" && !mode.unlocked) return "???";
   return val || 0;
 }
 
-function saveHighScore() {
+function saveHighScore(){
   const key = currentMode.highScoreKey;
-  const prev = parseInt(localStorage.getItem(key)) || 0;
-  if(score > prev) localStorage.setItem(key, score);
+  const prev = parseInt(localStorage.getItem(key))||0;
+  if(score>prev) localStorage.setItem(key,score);
 }
 
-function saveChallengeHighScore() {
+function saveChallengeHighScore(){
   const key = currentMode.highScoreKey;
   const movesUsed = currentMode.moves - moves;
-  const prev = parseInt(localStorage.getItem(key)) || Infinity;
-  if(movesUsed < prev) localStorage.setItem(key, movesUsed);
-  // Extreme 解放条件
-  if(currentMode.name === "Hard" && score >= 6500){
-    gameModes.extreme.unlocked = true;
+  const prev = parseInt(localStorage.getItem(key))||Infinity;
+  if(movesUsed<prev) localStorage.setItem(key,movesUsed);
+
+  // Extreme解放
+  if(currentMode.name==="Hard" && score>=6500){
+    gameModes.extreme.unlocked=true;
   }
 }
 
-// ------------------ ハイスコア画面ボタン定義 ------------------
-const highscoreButtons = [
-  {mode: "easy", x: 400, y: 180, width: 160, height: 40, label: "ランキングに登録"},
-  {mode: "hard", x: 400, y: 230, width: 160, height: 40, label: "ランキングに登録"},
-  {mode: "challenge", x: 400, y: 280, width: 160, height: 40, label: "ランキングに登録"},
-  {mode: "extreme", x: 400, y: 330, width: 160, height: 40, label: "ランキングに登録"},
-];
-
 // ------------------ 六角形描画 ------------------
-function drawHex(x, y, size, color, exists){
+function drawHex(x,y,size,color,exists){
   if(!exists) return;
   ctx.beginPath();
   for(let i=0;i<6;i++){
@@ -82,74 +102,43 @@ function drawHex(x, y, size, color, exists){
 
 // ------------------ グリッド初期化 ------------------
 function drawGrid(){
-  const hexHeight = SIZE * Math.sqrt(3);
+  const hexHeight = SIZE*Math.sqrt(3);
   const xSpacing = SIZE*1.5;
   const ySpacing = hexHeight;
 
-  hexGrid = [];
+  hexGrid=[];
   for(let col=0;col<COLS;col++){
     hexGrid[col]=[];
     for(let row=0;row<ROWS;row++){
-      const x = 100 + col * xSpacing;
-      const y = 100 + row * ySpacing + (col%2===1?ySpacing/2:0);
-      const color = currentMode ? currentMode.colors[Math.floor(Math.random()*currentMode.colors.length)] : gameModes.easy.colors[Math.floor(Math.random()*3)];
+      const x = 100 + col*xSpacing;
+      const y = 100 + row*ySpacing + (col%2===1?ySpacing/2:0);
+      const colorsArr = currentMode ? currentMode.colors : gameModes.easy.colors;
+      const color = colorsArr[Math.floor(Math.random()*colorsArr.length)];
       hexGrid[col][row]={x,y,color,exists:true,targetY:y};
       drawHex(x,y,SIZE,color,true);
     }
   }
 }
 
-// ------------------ 再描画 ------------------
+// ------------------ 描画 ------------------
 function drawAll(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
+
   switch(currentScreen){
     case "title": drawTitleScreen(); break;
     case "modeSelect": drawModeSelectScreen(); break;
-    case "highScore": drawHighScoreScreen(); break;
     case "game": drawGameScreen(); break;
     case "gameOver": drawGameOverScreen(); break;
     case "gameClear": drawGameClearScreen(); break;
     case "resetConfirm": drawResetConfirmScreen(); break;
-  }
-drawUserName();
-}
-
-// ------------------ 画面描写 ------------------
-function drawAll() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  switch(currentScreen){
-    case "title":
-      drawTitleScreen();
-      break;
-    case "modeSelect":
-      drawModeSelectScreen();
-      break;
-    case "game":
-      drawGameScreen();
-      break;
-    case "gameOver":
-      drawGameOverScreen();
-      break;
-    case "gameClear":
-      drawGameClearScreen();
-      break;
-    case "resetConfirm":
-      drawResetConfirmScreen();
-      break;
-    case "highScore":
-      drawHighScoreScreen();
-      break;
-    default:
-      // 万一のデフォルトはタイトル画面
-      drawTitleScreen();
-      break;
+    case "highScore": drawHighScoreScreen(); break;
+    default: drawTitleScreen(); break;
   }
 
-  // 画面共通要素
   drawUserName();
 }
-// タイトル画面
+
+// ------------------ 各画面 ------------------
 function drawTitleScreen(){
   ctx.font="40px Arial"; ctx.fillStyle="black";
   ctx.fillText("六角形パズルゲーム",100,100);
@@ -162,16 +151,13 @@ function drawTitleScreen(){
   ctx.fillText("リセット",200,400);
 }
 
-// モード選択画面
 function drawModeSelectScreen(){
   ctx.font="30px Arial"; ctx.fillStyle="black";
   ctx.fillText("モードを選んでください",100,100);
   ctx.fillText("1. Easy (3色)",150,200);
   ctx.fillText("2. Hard (4色)",150,250);
   ctx.fillText("3. 5000点チャレンジ (4色)",150,300);
-  if(gameModes.extreme.unlocked){
-    ctx.fillText("4. Extreme (5色)",150,350);
-  }
+  if(gameModes.extreme.unlocked) ctx.fillText("4. Extreme (5色)",150,350);
   ctx.fillText("戻る",150,400);
 }
 
@@ -306,6 +292,19 @@ else if(currentScreen === "highScore") {
     drawAll();
     return;
   }
+
+  // 各モードのランキング登録ボタン
+  for(let i = 0; i < highscoreButtons.length; i++){
+    const b = highscoreButtons[i];
+    if(mx >= b.x && mx <= b.x + b.width && my >= b.y && my <= b.y + b.height){
+      const highScore = getHighScore(gameModes[b.mode]);
+      // Firestore 送信を呼び出す
+      sendHighScore(b.mode, highScore, userName);
+      return; // 送信後は他の判定を無視
+    }
+  }
+}
+
 
   // 各モードのランキングボタン判定
   for(let i = 0; i < highscoreButtons.length; i++){
