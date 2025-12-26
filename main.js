@@ -281,13 +281,13 @@ canvas.addEventListener("click", (e) => {
       drawAll();
     }
   }
- else if(currentScreen === "highScore"){ 
+else if(currentScreen === "highScore"){ 
   // 登録ボタン判定
   if(mx >= 400 && mx <= 500){
-    if(my >= 200 && my <= 230) submitRanking("Easy");
-    else if(my >= 250 && my <= 280) submitRanking("Hard");
-    else if(my >= 300 && my <= 330) submitRanking("5000点チャレンジ");
-    else if(my >= 350 && my <= 380 && gameModes.extreme.unlocked) submitRanking("Extreme");
+    if(my >= 200 && my <= 230) submitRanking("easy");
+    else if(my >= 250 && my <= 280) submitRanking("hard");
+    else if(my >= 300 && my <= 330) submitRanking("challenge");
+    else if(my >= 350 && my <= 380 && gameModes.extreme.unlocked) submitRanking("extreme");
   }
   
   // 戻るボタン判定
@@ -296,6 +296,7 @@ canvas.addEventListener("click", (e) => {
     drawAll();
   }
 }
+
   else if(currentScreen === "modeSelect"){
     if(my >= 180 && my <= 220) startGame("easy");
     else if(my >= 230 && my <= 270) startGame("hard");
@@ -355,27 +356,33 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 });
 
-// ------------------ GAS送信 ------------------
-async function submitRanking(modeName){
-  if(!modeName) return;
+// ------------------ GAS送信関数 ------------------
+async function submitRanking(modeKey){
+  const keyMap = {
+    easy: "easyHighScore",
+    hard: "hardHighScore",
+    challenge: "challengeHighScore",
+    extreme: "extremeHighScore"
+  };
 
-  const mode = gameModes[modeName.toLowerCase()] || currentMode;
-  const scoreToSubmit = parseInt(localStorage.getItem(mode.highScoreKey)) || 0;
+  // localStorage からスコアを取得
+  const scoreToSubmit = parseInt(localStorage.getItem(keyMap[modeKey])) || 0;
   if(scoreToSubmit <= 0) return alert("スコアがありません");
 
   try {
     const url = "https://script.google.com/macros/s/AKfycbwFtr-mUnW8SwqKoZYT8QDX0IRzfjKwKos79oHWQLXTqYuQDPvBtz884LkePOfoTPK8/exec";
     const res = await fetch(url, {
       method: "POST",
-      body: JSON.stringify({name:userName, score:scoreToSubmit, mode:mode.name}),
+      body: JSON.stringify({name: userName, score: scoreToSubmit, mode: modeKey}),
       headers: {"Content-Type":"application/json"}
     });
     const data = await res.json();
-    if(data.status === "success") alert(`${mode.name}のスコアをランキングに登録しました！`);
+    if(data.status === "success") alert(modeKey + " のスコアをランキングに登録しました！");
   } catch(e) {
     alert("送信に失敗しました。ネットワークを確認してください。");
   }
-}// ------------------ ゲーム開始 ------------------
+}
+// ------------------ ゲーム開始 ------------------
 function startGame(modeKey){
   currentMode=gameModes[modeKey];
   score=0;
@@ -556,4 +563,5 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
 
