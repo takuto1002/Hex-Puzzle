@@ -4,33 +4,17 @@
 <meta charset="UTF-8">
 <title>六角形パズルゲーム</title>
 <style>
-  #gameWrapper {
-    width: 600px;
-    margin: 0 auto;   /* 画面中央寄せ */
-    text-align: center;
-  }
-
-  canvas {
-    border: 1px solid black;
-    display: block;
-    margin: 0 auto;
-  }
-
-  #changeNameBtn {
-    margin-top: 10px; /* キャンバスの真下 */
-  }
+  canvas { border:1px solid black; display:block; margin:0 auto; }
 </style>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
 </head>
 <body>
-
-<div id="gameWrapper">
-  <canvas id="game" width="600" height="600"></canvas>
-  <button id="changeNameBtn">名前変更</button>
-</div>
-
-<!-- main.js をモジュールとして読み込み -->
-<script type="module" src="main.js"></script>
-
+<canvas id="game" width="600" height="600"></canvas>
+<script src="main.js"></script>
 </body>
 </html>
 
