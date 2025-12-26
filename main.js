@@ -307,13 +307,15 @@ else if(currentScreen === "highScore") {
     return;
   }
 
-  // 2. 各モードのランキング登録ボタン
+  // 各モードのランキングボタン判定
   for(let i = 0; i < highscoreButtons.length; i++){
     const b = highscoreButtons[i];
-    if(mx >= b.x && mx <= b.x + b.width && my >= b.y && my <= b.y + b.height){
+    if(mx >= b.x && mx <= b.x + b.width &&
+       my >= b.y && my <= b.y + b.height){
       const highScore = getHighScore(gameModes[b.mode]);
-      sendScoreToGAS(b.mode, highScore, userName);
-      return; // 送信後は他の判定を無視
+      // GAS送信を削除 → 代わりにアラート表示
+      alert(b.label + " のハイスコアは " + highScore + " 点です");
+      return; // 処理終了
     }
   }
 }
@@ -358,36 +360,6 @@ else if(currentScreen === "highScore") {
     handleHexClick(mx, my);
   }
 });
-
-// ------------------ GAS関数------------------
-function sendScoreToGAS(mode, score, userName){
-  const url = "https://script.google.com/macros/s/AKfycbwFtr-mUnW8SwqKoZYT8QDX0IRzfjKwKos79oHWQLXTqYuQDPvBtz884LkePOfoTPK8/exec"; // 実際のURLに置き換え
-  const data = {
-    mode: mode,
-    score: score,
-    name: userName
-  };
-
-  console.log("送信開始", data);
-
-  fetch(url, {
-    method: "POST",
-    mode: "cors",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  })
-  .then(res => res.json())
-  .then(resData => {
-    console.log("送信完了", resData);
-    alert("ランキングに登録しました！");
-  })
-  .catch(err => {
-    console.error("fetchエラー", err);
-    alert("送信に失敗しました。");
-  });
-}
 
 // ------------------ ゲーム開始 ------------------
 function startGame(modeKey){
