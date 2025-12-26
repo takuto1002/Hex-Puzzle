@@ -297,25 +297,25 @@ canvas.addEventListener("click", (e) => {
       drawAll();
     }
   }
-else if(currentScreen === "highScore") {
-  // ランキング登録ボタン判定
+else if(currentScreen === "highScore"){
+  // 1. ランキング登録ボタン判定
   highscoreButtons.forEach(b => {
-    if(mx >= b.x && mx <= b.x + b.width &&
-       my >= b.y && my <= b.y + b.height){
-      const mode = gameModes[b.mode];
-      const scoreToSend = getHighScore(mode);
-      sendScoreToGAS(b.mode, userName, scoreToSend); // GAS送信関数
+    if(b.mode !== "extreme" || gameModes.extreme.unlocked){ // Extremeは解放済みのみ
+      if(mx >= b.x && mx <= b.x + b.width && my >= b.y && my <= b.y + b.height){
+        console.log("ランキング登録ボタン押された:", b.mode);
+        sendScoreToGAS(b.mode, score, userName); // GAS 送信用関数
+        drawAll(); // 反映
+        return;
+      }
     }
   });
-  // 戻るボタンクリック判定
-  if(mx >= 150 && mx <= 270 && my >= 400 && my <= 440){ // ボタンの座標・サイズに合わせる
-    currentScreen = "title";  // タイトル画面に戻る
-    drawAll();
-    return; // ここで処理終了
-  }
 
-  drawAll();
-  return;
+  // 2. 戻るボタン判定
+  if(mx >= 150 && mx <= 270 && my >= 400 && my <= 440){
+    currentScreen = "title";
+    drawAll();
+    return;
+  }
 }
   else if(currentScreen === "modeSelect"){
     if(my >= 180 && my <= 220) startGame("easy");
@@ -378,29 +378,32 @@ if (changeBtn) {
 }
 
 // ------------------ GAS関数------------------
-function sendScoreToGAS(mode, userName, score){
-  console.log("送信開始", {mode, userName, score});
+function sendScoreToGAS(mode, score, userName){
+  const url = "https://script.google.com/macros/s/AKfycbwFtr-mUnW8SwqKoZYT8QDX0IRzfjKwKos79oHWQLXTqYuQDPvBtz884LkePOfoTPK8/exec"; // 実際のURLに置き換え
+  const data = {
+    mode: mode,
+    score: score,
+    name: userName
+  };
 
-  fetch("https://script.google.com/macros/s/AKfycbwFtr-mUnW8SwqKoZYT8QDX0IRzfjKwKos79oHWQLXTqYuQDPvBtz884LkePOfoTPK8/exec", {
+  console.log("送信開始", data);
+
+  fetch(url, {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      name: userName,
-      score: score,
-      mode: mode
-    })
+    mode: "cors",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
   })
-  .then(res => {
-    console.log("HTTP status", res.status);
-    return res.text();
-  })
-  .then(text => {
-    console.log("レスポンス本文", text);
+  .then(res => res.json())
+  .then(resData => {
+    console.log("送信完了", resData);
     alert("ランキングに登録しました！");
   })
   .catch(err => {
     console.error("fetchエラー", err);
-    alert("通信に失敗しました");
+    alert("送信に失敗しました。");
   });
 }
 // ------------------ ゲーム開始 ------------------
@@ -584,6 +587,4 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
-
-
 
