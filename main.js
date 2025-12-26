@@ -141,7 +141,31 @@ function drawModeSelectScreen(){
   ctx.fillText("戻る",150,400);
 }
 
-function drawHighScoreScreen() {
+function drawGameScreen(){
+  for(let col=0;col<COLS;col++){
+    for(let row=0;row<ROWS;row++){
+      const hex = hexGrid[col][row];
+      drawHex(hex.x,hex.y,SIZE,hex.color,hex.exists);
+    }
+  }
+  drawScore();
+  drawPopups();
+// ハイスコアの下にタイトルに戻るボタン
+  ctx.fillStyle = "black";
+  ctx.font = "20px Arial";
+  ctx.fillText("タイトルに戻る", canvas.width - 160, 60);
+}
+
+function drawGameOverScreen(){
+  // 元のGameOver描画
+  ctx.font="40px Arial"; ctx.fillStyle="red";
+  ctx.fillText("Game Over!",150,200);
+  ctx.font="30px Arial"; ctx.fillStyle="black";
+  ctx.fillText("Your Score: "+score,150,250);
+  ctx.fillText("もう一度",150,300);
+  ctx.fillText("タイトルに戻る",150,350);
+
+  function drawHighScoreScreen() {
   ctx.clearRect(0,0,canvas.width,canvas.height); // 前の画面をクリア
   ctx.font = "30px Arial"; ctx.fillStyle = "black";
   ctx.fillText("モード別ハイスコア", 100, 100);
@@ -170,31 +194,6 @@ highscoreButtons.forEach(b => {
   ctx.fillStyle = "#000";
   ctx.fillText("戻る", 160, 430);
 }
-
-function drawGameScreen(){
-  for(let col=0;col<COLS;col++){
-    for(let row=0;row<ROWS;row++){
-      const hex = hexGrid[col][row];
-      drawHex(hex.x,hex.y,SIZE,hex.color,hex.exists);
-    }
-  }
-  drawScore();
-  drawPopups();
-// ハイスコアの下にタイトルに戻るボタン
-  ctx.fillStyle = "black";
-  ctx.font = "20px Arial";
-  ctx.fillText("タイトルに戻る", canvas.width - 160, 60);
-}
-
-function drawGameOverScreen(){
-  // 元のGameOver描画
-  ctx.font="40px Arial"; ctx.fillStyle="red";
-  ctx.fillText("Game Over!",150,200);
-  ctx.font="30px Arial"; ctx.fillStyle="black";
-  ctx.fillText("Your Score: "+score,150,250);
-  ctx.fillText("もう一度",150,300);
-  ctx.fillText("タイトルに戻る",150,350);
-
   // -------------------------------
   // Extreme解放通知ウィンドウ
   // -------------------------------
