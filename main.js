@@ -125,21 +125,24 @@ function drawAll(){
 drawUserName();
 }
 // ------------------ Firebase→app ------------------
-
 async function getRanking(mode) {
   const db = firebase.firestore();
-  const snapshot = await db.collection("rankings")
-                           .where("mode", "==", mode)
-                           .orderBy("score", "desc")
-                           .limit(5)
-                           .get();
+  let query = db.collection("rankings").where("mode", "==", mode);
+
+  if(mode === "challenge") {
+    query = query.orderBy("score", "asc"); // 手数が少ない順
+  } else {
+    query = query.orderBy("score", "desc"); // スコアが高い順
+  }
+
+  const snapshot = await query.limit(5).get();
   let list = [];
   snapshot.forEach(doc => {
+    console.log(doc.data()); // ←ここで実際にデータが出るか確認
     list.push(doc.data());
   });
-  return list; // [{name, score, mode}, ...]
+  return list;
 }
-
 // ------------------ 画面描写 ------------------
 function drawAll() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -723,4 +726,5 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
 
