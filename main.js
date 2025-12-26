@@ -129,7 +129,7 @@ async function getRanking(mode) {
   const db = firebase.firestore();
   let query = db.collection("rankings").where("mode", "==", mode);
 
-  if(mode === "challenge") {
+  if (mode === "challenge") {
     query = query.orderBy("score", "asc"); // 手数が少ない順
   } else {
     query = query.orderBy("score", "desc"); // スコアが高い順
@@ -137,12 +137,26 @@ async function getRanking(mode) {
 
   const snapshot = await query.limit(5).get();
   let list = [];
+
   snapshot.forEach(doc => {
-    console.log(doc.data()); // ←ここで実際にデータが出るか確認
-    list.push(doc.data());
+    const data = doc.data();
+    list.push({
+      name: data.name,
+      score: Number(data.score),  // 数値化
+      date: data.date
+    });
   });
+
+  // 念のため、数値でソート（Firestoreが文字列として扱った場合の保険）
+  if (mode === "challenge") {
+    list.sort((a, b) => a.score - b.score); // 少ない順
+  } else {
+    list.sort((a, b) => b.score - a.score); // 高い順
+  }
+
   return list;
 }
+
 // ------------------ 画面描写 ------------------
 function drawAll() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -726,5 +740,6 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
 
 
