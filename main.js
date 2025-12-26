@@ -114,11 +114,13 @@ function drawAll(){
 drawUserName();
 }
 
-// ------------------ 画面 ------------------
+// ------------------ 画面描写 ------------------
+
+// タイトル画面
 function drawTitleScreen(){
   ctx.font="40px Arial"; ctx.fillStyle="black";
   ctx.fillText("六角形パズルゲーム",100,100);
- ctx.font="18px Arial";
+  ctx.font="18px Arial";
   ctx.fillText("同じ色の六角形をクリックして消そう！", 90, 160);
   ctx.fillText("たくさんつなげるほど高得点！", 120, 185);
   ctx.font="30px Arial";
@@ -127,7 +129,7 @@ function drawTitleScreen(){
   ctx.fillText("リセット",200,400);
 }
 
-
+// モード選択画面
 function drawModeSelectScreen(){
   ctx.font="30px Arial"; ctx.fillStyle="black";
   ctx.fillText("モードを選んでください",100,100);
@@ -137,27 +139,28 @@ function drawModeSelectScreen(){
   if(gameModes.extreme.unlocked){
     ctx.fillText("4. Extreme (5色)",150,350);
   }
-  // タイトルに戻るボタン
   ctx.fillText("戻る",150,400);
 }
 
+// ゲーム画面
 function drawGameScreen(){
-  for(let col=0;col<COLS;col++){
-    for(let row=0;row<ROWS;row++){
+  for(let col=0; col<COLS; col++){
+    for(let row=0; row<ROWS; row++){
       const hex = hexGrid[col][row];
-      drawHex(hex.x,hex.y,SIZE,hex.color,hex.exists);
+      drawHex(hex.x, hex.y, SIZE, hex.color, hex.exists);
     }
   }
   drawScore();
   drawPopups();
-// ハイスコアの下にタイトルに戻るボタン
+
+  // タイトルに戻るボタン
   ctx.fillStyle = "black";
   ctx.font = "20px Arial";
   ctx.fillText("タイトルに戻る", canvas.width - 160, 60);
 }
 
+// GameOver画面
 function drawGameOverScreen(){
-  // 元のGameOver描画
   ctx.font="40px Arial"; ctx.fillStyle="red";
   ctx.fillText("Game Over!",150,200);
   ctx.font="30px Arial"; ctx.fillStyle="black";
@@ -165,72 +168,27 @@ function drawGameOverScreen(){
   ctx.fillText("もう一度",150,300);
   ctx.fillText("タイトルに戻る",150,350);
 
-  function drawHighScoreScreen() {
-  ctx.clearRect(0,0,canvas.width,canvas.height); // 前の画面をクリア
-  ctx.font = "30px Arial"; ctx.fillStyle = "black";
-  ctx.fillText("モード別ハイスコア", 100, 100);
-
-  ctx.font = "24px Arial";
-  ctx.fillText("Easy: " + (localStorage.getItem("easyHighScore") || 0), 150, 200);
-  ctx.fillText("Hard: " + (localStorage.getItem("hardHighScore") || 0), 150, 250);
-  ctx.fillText("5000点チャレンジ: " + (localStorage.getItem("challengeHighScore") || 0), 150, 300);
-  let extremeText = gameModes.extreme.unlocked ? "Extreme: " + (localStorage.getItem("extremeHighScore") || 0) 
-                                               : "???: 0";
-  ctx.fillText(extremeText, 150, 350);
-
-// 登録ボタン描写
-highscoreButtons.forEach(b => {
-  ctx.fillStyle = "#ffcc00";
-  ctx.fillRect(b.x, b.y, b.width, b.height);
-
-  ctx.fillStyle = "#000";
-  ctx.font = "16px Arial";
-  ctx.fillText(b.label, b.x + 10, b.y + 28);
-});
-
-  // 戻るボタン描写
-  ctx.fillStyle = "#aaa";
-  ctx.fillRect(150, 400, 120, 40);
-  ctx.fillStyle = "#000";
-  ctx.fillText("戻る", 160, 430);
-}
-  // -------------------------------
-  // Extreme解放通知ウィンドウ
-  // -------------------------------
+  // Extreme解放ウィンドウ
   if(gameModes.extreme.unlocked && gameModes.extreme.showWindow){
     const winX = 50, winY = 100, winW = 400, winH = 100;
-
-    // 背景
     ctx.fillStyle = "rgba(255,255,200,0.95)";
     ctx.fillRect(winX, winY, winW, winH);
-
-    // 枠線
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "black"; ctx.lineWidth = 2;
     ctx.strokeRect(winX, winY, winW, winH);
-
-    // テキスト
-    ctx.fillStyle = "black";
-    ctx.font = "20px Arial";
+    ctx.fillStyle = "black"; ctx.font = "20px Arial";
     ctx.fillText("Extreme モードが解放されました！", winX + 20, winY + 40);
 
     // OKボタン
-    const btnX = winX + winW - 80;
-    const btnY = winY + winH - 40;
-    const btnW = 60;
-    const btnH = 30;
-    ctx.fillStyle = "lightblue";
-    ctx.fillRect(btnX, btnY, btnW, btnH);
+    const btnX = winX + winW - 80, btnY = winY + winH - 40, btnW = 60, btnH = 30;
+    ctx.fillStyle = "lightblue"; ctx.fillRect(btnX, btnY, btnW, btnH);
     ctx.strokeRect(btnX, btnY, btnW, btnH);
-    ctx.fillStyle = "black";
-    ctx.font = "18px Arial";
+    ctx.fillStyle = "black"; ctx.font = "18px Arial";
     ctx.fillText("OK", btnX + 15, btnY + 22);
-
-    // OKボタン位置を保存
     gameModes.extreme.okButton = {x: btnX, y: btnY, w: btnW, h: btnH};
   }
 }
 
+// GameClear画面
 function drawGameClearScreen(){
   ctx.font="40px Arial"; ctx.fillStyle="green";
   ctx.fillText("Challenge Cleared!",100,200);
@@ -240,6 +198,7 @@ function drawGameClearScreen(){
   ctx.fillText("タイトルに戻る",150,350);
 }
 
+// リセット確認画面
 function drawResetConfirmScreen(){
   ctx.font="30px Arial"; ctx.fillStyle="black";
   ctx.fillText("本当にリセットしますか？",100,200);
@@ -247,6 +206,35 @@ function drawResetConfirmScreen(){
   ctx.fillText("いいえ",300,250);
 }
 
+// ------------------ ハイスコア画面（最後に置く） ------------------
+function drawHighScoreScreen(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.font = "30px Arial"; ctx.fillStyle = "black";
+  ctx.fillText("モード別ハイスコア", 100, 100);
+
+  ctx.font = "24px Arial";
+  ctx.fillText("Easy: " + (localStorage.getItem("easyHighScore") || 0), 150, 200);
+  ctx.fillText("Hard: " + (localStorage.getItem("hardHighScore") || 0), 150, 250);
+  ctx.fillText("5000点チャレンジ: " + (localStorage.getItem("challengeHighScore") || 0), 150, 300);
+  const extremeText = gameModes.extreme.unlocked ? "Extreme: " + (localStorage.getItem("extremeHighScore") || 0) : "???: 0";
+  ctx.fillText(extremeText, 150, 350);
+
+  // 登録ボタン描写
+  highscoreButtons.forEach(b => {
+    ctx.fillStyle = "#ffcc00";
+    ctx.fillRect(b.x, b.y, b.width, b.height);
+    ctx.fillStyle = "#000";
+    ctx.font = "16px Arial"; // 文字小さめ
+    ctx.fillText(b.label, b.x + 10, b.y + 25);
+  });
+
+  // 戻るボタン
+  ctx.fillStyle = "#aaa";
+  ctx.fillRect(150, 400, 120, 40);
+  ctx.fillStyle = "#000";
+  ctx.font = "20px Arial";
+  ctx.fillText("戻る", 160, 430);
+}
 // ------------------ クリック処理 ------------------
 canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
@@ -563,4 +551,5 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
 
