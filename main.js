@@ -297,24 +297,24 @@ canvas.addEventListener("click", (e) => {
       drawAll();
     }
   }
-else if(currentScreen === "highScore"){
-  // 1. ランキング登録ボタン判定
-  highscoreButtons.forEach(b => {
-    if(b.mode !== "extreme" || gameModes.extreme.unlocked){ // Extremeは解放済みのみ
-      if(mx >= b.x && mx <= b.x + b.width && my >= b.y && my <= b.y + b.height){
-        console.log("ランキング登録ボタン押された:", b.mode);
-        sendScoreToGAS(b.mode, score, userName); // GAS 送信用関数
-        drawAll(); // 反映
-        return;
-      }
-    }
-  });
-
-  // 2. 戻るボタン判定
-  if(mx >= 150 && mx <= 270 && my >= 400 && my <= 440){
+else if(currentScreen === "highScore") {
+  // 戻るボタン判定
+  const backBtn = {x:150, y:400, width:120, height:40};
+  if(mx >= backBtn.x && mx <= backBtn.x + backBtn.width &&
+     my >= backBtn.y && my <= backBtn.y + backBtn.height){
     currentScreen = "title";
     drawAll();
     return;
+  }
+
+  // 2. 各モードのランキング登録ボタン
+  for(let i = 0; i < highscoreButtons.length; i++){
+    const b = highscoreButtons[i];
+    if(mx >= b.x && mx <= b.x + b.width && my >= b.y && my <= b.y + b.height){
+      const highScore = getHighScore(gameModes[b.mode]);
+      sendScoreToGAS(b.mode, highScore, userName);
+      return; // 送信後は他の判定を無視
+    }
   }
 }
   else if(currentScreen === "modeSelect"){
@@ -327,21 +327,18 @@ else if(currentScreen === "highScore"){
       drawAll();
     }
   }
- else if(currentScreen === "gameOver"){
-  // Extreme解放ウィンドウのOK判定
-  if(gameModes.extreme.unlocked && gameModes.extreme.showWindow){
-    const btn = gameModes.extreme.okButton;
-    if(mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h){
-      gameModes.extreme.showWindow = false; // OKで閉じる
-      drawAll();
-      return;
+  else if(currentScreen === "gameOver"){
+    if(gameModes.extreme.unlocked && gameModes.extreme.showWindow){
+      const btn = gameModes.extreme.okButton;
+      if(mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h){
+        gameModes.extreme.showWindow = false;
+        drawAll();
+        return;
+      }
     }
+    if(my >= 280 && my <= 320) startGame(currentMode.name.toLowerCase());
+    else if(my >= 330 && my <= 370){ currentScreen="title"; drawAll(); }
   }
-
-  // 既存のGameOverクリック処理
-  if(my >= 280 && my <= 320) startGame(currentMode.name.toLowerCase());
-  else if(my >= 330 && my <= 370){ currentScreen="title"; drawAll(); }
-}
   else if(currentScreen === "gameClear"){
     if(my >= 280 && my <= 320) startGame("challenge");
     else if(my >= 330 && my <= 370){ 
@@ -351,31 +348,16 @@ else if(currentScreen === "highScore"){
     }
   }
   else if(currentScreen === "game") {
-    // 1. まずゲーム中タイトルボタン判定（右上ハイスコア下）
     if(mx >= canvas.width - 160 && mx <= canvas.width - 20 &&
        my >= 40 && my <= 70){
       currentScreen = "title";
-      currentMode = null; // モード情報リセット
+      currentMode = null;
       drawAll();
-      return; // 六角形クリック処理は無視
+      return;
     }
-
-    // 2. 六角形クリック処理
     handleHexClick(mx, my);
   }
 });
-
-const changeBtn = document.getElementById("changeNameBtn");
-if (changeBtn) {
-  changeBtn.onclick = () => {
-    const newName = prompt("ユーザー名を入力してください", userName);
-    if (newName && newName.trim() !== "") {
-      userName = newName.trim();
-      localStorage.setItem("userName", userName);
-      drawAll(); // 即時反映
-    }
-  };
-}
 
 // ------------------ GAS関数------------------
 function sendScoreToGAS(mode, score, userName){
@@ -406,6 +388,7 @@ function sendScoreToGAS(mode, score, userName){
     alert("送信に失敗しました。");
   });
 }
+
 // ------------------ ゲーム開始 ------------------
 function startGame(modeKey){
   currentMode=gameModes[modeKey];
@@ -587,4 +570,3 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
-
