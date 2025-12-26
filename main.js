@@ -17,16 +17,15 @@ let currentScreen = "title"; // title / modeSelect / game / gameOver / highScore
 let currentMode = null;
 
 // ------------------ ユーザーネーム ------------------
-const changeNameBtn = document.getElementById("changeNameBtn");
-
-changeNameBtn.addEventListener("click", () => {
-  const newName = prompt("新しい名前を入力してください:", userName);
-  if(newName && newName.trim() !== "") {
-    userName = newName.trim();  // ここは宣言しないで代入だけ
-    alert("名前を " + userName + " に変更しました！");
-  }
+document.getElementById("changeNameBtn").addEventListener("click", () => {
+    const newName = prompt("新しい名前を入力してください", userName);
+    if(newName) {
+        userName = newName;
+        localStorage.setItem("userName", userName); // ←ここで保存
+        alert("名前を " + userName + " に変更しました！");
+        drawAll(); // 画面再描画
+    }
 });
-
 // ------------------ ゲームモード ------------------
 const gameModes = {
   easy:   { name: "Easy", moves: 15, colors: ["red","blue","yellow"], highScoreKey: "easyHighScore" },
@@ -740,6 +739,7 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
 
 
 
