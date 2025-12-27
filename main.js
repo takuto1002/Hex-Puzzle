@@ -126,32 +126,25 @@ drawUserName();
 // ------------------ Firebase→app ------------------
 async function getRanking(mode) {
   const db = firebase.firestore();
-  let query = db.collection("rankings").where("mode", "==", mode);
+  let query = db.collection("rankings")
+    .where("mode", "==", mode);
 
   if (mode === "challenge") {
-    query = query.orderBy("score", "asc"); // 手数が少ない順
+    query = query.orderBy("score", "asc");
   } else {
-    query = query.orderBy("score", "desc"); // スコアが高い順
+    query = query.orderBy("score", "desc");
   }
 
   const snapshot = await query.limit(5).get();
   let list = [];
 
   snapshot.forEach(doc => {
-    const data = doc.data();
+    const d = doc.data();
     list.push({
-      name: data.name,
-      score: Number(data.score),  // 数値化
-      date: data.date
+      name: d.name,
+      score: d.score
     });
   });
-
-  // 念のため、数値でソート（Firestoreが文字列として扱った場合の保険）
-  if (mode === "challenge") {
-    list.sort((a, b) => a.score - b.score); // 少ない順
-  } else {
-    list.sort((a, b) => b.score - a.score); // 高い順
-  }
 
   return list;
 }
@@ -425,16 +418,17 @@ async function registerHighScoreFirestore(userName, mode, score){
   const docId = mode + "_" + userName;
   const docRef = db.collection("rankings").doc(docId);
 
+  const numericScore = Number(score); // ← ★最重要
+
   const doc = await docRef.get();
-  if(!doc.exists || doc.data().score < score){
-    docRef.set({
+  if(!doc.exists || Number(doc.data().score) < numericScore){
+    await docRef.set({
       name: userName,
       mode: mode,
-      score: score,
+      score: numericScore, // ← number固定
       date: firebase.firestore.FieldValue.serverTimestamp()
-    })
-    .then(() => console.log("Firestoreに書き込み成功:", userName, mode, score))
-    .catch(err => console.error("Firestore書き込みエラー:", err));
+    });
+    console.log("Firestoreに書き込み成功:", userName, mode, numericScore);
   } else {
     console.log("既存スコアの方が高いため更新しません");
   }
@@ -739,7 +733,3 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
-
-
-
-
