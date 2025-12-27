@@ -135,7 +135,7 @@ async function getRanking(mode) {
     query = query.orderBy("score", "desc");
   }
 
-  const snapshot = await query.limit(5).get();
+  const snapshot = await query.limit(7).get();
   let list = [];
 
   snapshot.forEach(doc => {
@@ -352,8 +352,8 @@ async function drawRankingScreen() {
     // モード名
     ctx.fillText(mode.charAt(0).toUpperCase() + mode.slice(1), startX + colIndex*colWidth, startY);
 
-    // 上位5位まで
-    list.slice(0,5).forEach((entry, i) => {
+    // 上位7位まで
+    list.slice(0,7).forEach((entry, i) => {
       const yName = startY + 20 + i*rowHeight*2; // 名前
       const yScore = yName + rowHeight;          // スコア
 
@@ -755,3 +755,4 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
