@@ -326,7 +326,6 @@ function drawHighScoreScreen(){
 }
 
 // ------------------ ランキング画面 ------------------
-// ------------------ ランキング画面 ------------------
 async function drawRankingScreen() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -418,19 +417,42 @@ async function registerHighScoreFirestore(userName, mode, score){
   const docId = mode + "_" + userName;
   const docRef = db.collection("rankings").doc(docId);
 
-  const numericScore = Number(score); // ← ★最重要
+  const numericScore = Number(score);
+
+  // ★ 追加：0点は登録しない
+  if (numericScore === 0) {
+    console.log("スコア0のためランキング登録しません");
+    return;
+  }
 
   const doc = await docRef.get();
-  if(!doc.exists || Number(doc.data().score) < numericScore){
+  let shouldUpdate = false;
+
+  if (!doc.exists) {
+    shouldUpdate = true;
+  } else {
+    const oldScore = Number(doc.data().score);
+    const normalizedMode = String(mode).trim().toLowerCase();
+
+    if (normalizedMode === "challenge") {
+      // 少ない方が良い
+      shouldUpdate = numericScore < oldScore;
+    } else {
+      // 多い方が良い
+      shouldUpdate = numericScore > oldScore;
+    }
+  }
+
+  if (shouldUpdate) {
     await docRef.set({
       name: userName,
-      mode: mode,
-      score: numericScore, // ← number固定
+      mode: String(mode).trim().toLowerCase(),
+      score: numericScore,
       date: firebase.firestore.FieldValue.serverTimestamp()
     });
-    console.log("Firestoreに書き込み成功:", userName, mode, numericScore);
+    console.log("Firestore更新:", userName, mode, numericScore);
   } else {
-    console.log("既存スコアの方が高いため更新しません");
+    console.log("スコア更新なし");
   }
 }
 // ------------------ クリック処理 ------------------
