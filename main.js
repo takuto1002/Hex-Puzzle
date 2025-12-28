@@ -14,7 +14,7 @@ let userName = localStorage.getItem("userName") || "Hex-user";
 
 
 let currentScreen = "title"; // title / modeSelect / game / gameOver / highScore / gameClear / resetConfirm
-let currentMode = null;
+let currentModeKey = null;
 
 // ------------------ ユーザーネーム ------------------
 document.getElementById("changeNameBtn").addEventListener("click", () => {
@@ -223,10 +223,10 @@ function drawGameScreen(){
   drawScore();
   drawPopups();
 
-  // タイトルに戻るボタン
   ctx.fillStyle = "black";
   ctx.font = "20px Arial";
   ctx.fillText("タイトルに戻る", canvas.width - 160, 60);
+  ctx.fillText("リスタート", canvas.width - 160, 90);
 }
 
 // GameOver画面
@@ -562,27 +562,43 @@ else if(currentScreen === "highScore") {
       drawAll(); 
     }
   }
-  else if(currentScreen === "game") {
-    if(mx >= canvas.width - 160 && mx <= canvas.width - 20 &&
-       my >= 40 && my <= 70){
-      currentScreen = "title";
-      currentMode = null;
-      drawAll();
-      return;
-    }
-    handleHexClick(mx, my);
+else if(currentScreen === "game") {
+  if (
+    mx >= canvas.width - 160 && mx <= canvas.width - 20 &&
+    my >= 40 && my <= 70
+  ) {
+    currentScreen = "title";
+    currentMode = null;
+    drawAll();
+    return;
+  }
+  if (
+    mx >= canvas.width - 160 && mx <= canvas.width - 20 &&
+    my >= 70 && my <= 100
+  ) {
+    restartGame();
+    return;
+  }
+
+  // 盤面クリック
+  handleHexClick(mx, my);
   }
 });
 
 // ------------------ ゲーム開始 ------------------
 function startGame(modeKey){
-  currentMode=gameModes[modeKey];
-  score=0;
-  moves=currentMode.moves;
-  gameOver=false;
-  currentScreen="game";
+  currentModeKey = modeKey;   // ← これ追加
+  currentMode = gameModes[modeKey];
+  score = 0;
+  moves = currentMode.moves;
+  gameOver = false;
+  currentScreen = "game";
   drawGrid();
   requestAnimationFrame(animateDrop);
+}
+
+function restartGame(){
+  startGame(currentModeKey);
 }
 
 // ------------------ ハンドルクリック ------------------
@@ -755,4 +771,6 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
+
+
 
