@@ -326,7 +326,7 @@ function drawHighScoreScreen(){
 }
 
 // ------------------ ランキング画面 ------------------
-async function drawRankingScreen() {
+function drawRankingScreen() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.font = "30px Arial";
@@ -334,35 +334,43 @@ async function drawRankingScreen() {
   ctx.textAlign = "center";
   ctx.fillText("ランキング", canvas.width / 2, 50);
 
-  // 列設定
   const modes = ["easy", "hard", "challenge", "extreme"];
   const startY = 100;
   const startX = 100;
-  const colWidth = 150;  // 列の幅
-  const rowHeight = 25;  // 名前とスコアの間隔
-
-  // Firestore からランキング取得
-  await fetchRankingData(); // rankingData に格納される
+  const colWidth = 150;
+  const rowHeight = 25;
 
   ctx.font = "16px Arial";
   ctx.textAlign = "center";
   modes.forEach((mode, colIndex) => {
     const list = rankingData[mode] || [];
+    ctx.fillText(mode.charAt(0).toUpperCase() + mode.slice(1), startX + colIndex * colWidth, startY);
 
-    // モード名
-    ctx.fillText(mode.charAt(0).toUpperCase() + mode.slice(1), startX + colIndex*colWidth, startY);
-
-    // 上位7位まで
-    list.slice(0,7).forEach((entry, i) => {
-      const yName = startY + 20 + i*rowHeight*2; // 名前
-      const yScore = yName + rowHeight;          // スコア
-
-      ctx.fillText(entry.name, startX + colIndex*colWidth, yName);
-      ctx.fillText(entry.score, startX + colIndex*colWidth, yScore);
+    list.slice(0, 7).forEach((entry, i) => {
+      const yName = startY + 20 + i * rowHeight * 2;
+      const yScore = yName + rowHeight;
+      ctx.fillText(entry.name, startX + colIndex * colWidth, yName);
+      ctx.fillText(entry.score, startX + colIndex * colWidth, yScore);
     });
   });
 
-  // 戻るボタン
+  if (!rankingDataLoaded && !rankingDataLoading) {
+    ctx.fillStyle = "#666";
+    ctx.font = "18px Arial";
+    ctx.fillText("ランキングを読み込み中...", canvas.width / 2, 500);
+    rankingDataLoading = true;
+    fetchRankingData()
+      .then(() => {
+        rankingDataLoaded = true;
+        rankingDataLoading = false;
+        if (currentScreen === "rankingScreen") drawAll();
+      })
+      .catch(err => {
+        rankingDataLoading = false;
+        console.error("ランキング取得に失敗しました", err);
+      });
+  }
+
   ctx.fillStyle = "#aaa";
   ctx.fillRect(150, 550, 120, 40);
   ctx.fillStyle = "#000";
@@ -373,6 +381,8 @@ async function drawRankingScreen() {
 
 // ------------------ ランキングデータ保存用 ------------------
 let rankingData = {}; // 取得済みランキングを保存
+let rankingDataLoaded = false;
+let rankingDataLoading = false;
 
 async function fetchRankingData() {
   const modes = ["easy", "hard", "challenge", "extreme"];
@@ -771,6 +781,5 @@ function animateDrop(){
 
 // ------------------ 初期表示 ------------------
 drawAll();
-
 
 
